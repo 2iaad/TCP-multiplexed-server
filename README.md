@@ -15,29 +15,60 @@ Features
     
 *   Non-blocking I/O using `select()`
     
-*   Unique incremental ID assigned to each client
-    
 *   Broadcasts messages between clients
     
 *   Proper connection and disconnection notifications
-    
-*   No memory or file descriptor leaks
-    
 
-Usage
------
-
-### Compilation: 
-    gcc -Wall -Wextra -Werror tcp_server.c -o tcp_server
-
-### Execution: 
-    ./tcp_server <port>
-
-### If no port is provided, the program exits with:
-    Wrong number of arguments
+Server Event Loop (Flow Diagram)
+-------------
+```
+                +--------------------+
+                |   Start Server     |
+                +--------------------+
+                          |
+                          v
+                +--------------------+
+                | socket / bind /    |
+                | listen             |
+                +--------------------+
+                          |
+                          v
+                +--------------------+
+                |   Main Loop        |
+                |    select()        |
+                +--------------------+
+                    /              \
+                   /                \
+        +----------------+      +--------------------+
+        | New connection |      | Client socket ready|
+        | (listen fd)    |      | (recv/send)        |
+        +----------------+      +--------------------+
+                |                             |
+                v                             v
+      +--------------------+   +----------------------+
+      | accept() client    |   | recv() message       |
+      | assign ID          |   | or detect disconnect |
+      +--------------------+   +----------------------+
+                |                             |
+                v                             v
+  +-----------------------------+   +-----------------------------+
+  | Notify other clients:       |   | If message received:        |
+  | "client X just arrived"     |   | broadcast to other clients  |
+  +-----------------------------+   +-----------------------------+
+                                              |
+                                              v
+                                    +-----------------------------+
+                                    | If disconnected:            |
+                                    | close fd, free memory,      |
+                                    | notify clients              |
+                                    +-----------------------------+
+```
 
 Testing
 -------
+
+### Compilation && Execution: 
+    gcc -Wall -Wextra -Werror tcp_server.c -o tcp_server && ./tcp_server <port>
 
 You can test the server using `nc` (netcat):
 
@@ -45,45 +76,8 @@ You can test the server using `nc` (netcat):
 
 Open multiple terminals to simulate multiple clients.
 
-Server Behavior
----------------
-
-### Client Connection
-
-*   Each client receives a unique ID starting from `0`
-    
-*   When a client connects, all existing clients receive:    
-
-    `server: client <id> just arrived`
-    
-
-### Message Handling
-
-*   Clients can send printable characters
-    
-*   Each line is broadcasted to other clients with the format:
-
-    `client <id>: <message>`
-    
-
-### Client Disconnection
-
-*   When a client disconnects, remaining clients receive:
-
-    `server: client <id> just left`
-
-Allowed Functions
+Functions i used
 -----------------
 
-`write, close, select, socket, accept, listen, send, recv, bind, strstr, malloc, realloc, free, calloc, bzero, atoi, sprintf, strlen, exit, strcpy, strcat, memset`
+`accept(), atoi(), bind(), close(), exit(), listen(), memcpy(), memset(), recv(), select(), socket(), strlen(), write().`
 
-* * *
-
-Project Files
--------------
-
-```
-    .
-    ├── tcp_server.c 
-    └── README.md`
-```
