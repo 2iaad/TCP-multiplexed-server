@@ -5,6 +5,7 @@ Description
 
 This is a small non-blocking TCP chat server in C.
 It listens on `127.0.0.1` and allows multiple clients to communicate with each other using socket multiplexing via `select()`.
+![src](https://ops.tips/blog/-/images/tcp-connection-overview.svg)
 
 Features
 --------
