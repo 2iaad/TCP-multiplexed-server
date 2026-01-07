@@ -24,45 +24,45 @@ Server Event Loop (Flow Diagram)
 -------------
 ```
                 +--------------------+
-                |   Start Server     |
+                |   socket / bind /  |
+                |       listen       |
                 +--------------------+
                           |
                           v
                 +--------------------+
-                | socket / bind /    |
-                | listen             |
+                |    Start Server    |
                 +--------------------+
                           |
                           v
                 +--------------------+
-                |   Main Loop        |
-                |    select()        |
+                |      Main Loop     |
+                |       select()     |
                 +--------------------+
                     /              \
                    /                \
-        +----------------+      +--------------------+
-        | New connection |      | Client socket ready|
-        | (listen fd)    |      | (recv/send)        |
-        +----------------+      +--------------------+
+        +----------------+       +--------------------+
+        | New connection |       | Client socket ready|
+        | (listen fd)    |       | (recv/send)        |
+        +----------------+       +--------------------+
                 |                             |
                 v                             v
-      +--------------------+   +----------------------+
-      | accept() client    |   | recv() message       |
-      | assign ID          |   | or detect disconnect |
-      +--------------------+   +----------------------+
+      +--------------------+     +----------------------+
+      | accept() client    |     | recv() message       |
+      | assign ID          |     | or detect disconnect |
+      +--------------------+     +----------------------+
                 |                             |
                 v                             v
-  +-----------------------------+   +-----------------------------+
-  | Notify other clients:       |   | If message received:        |
-  | "client X just arrived"     |   | broadcast to other clients  |
-  +-----------------------------+   +-----------------------------+
++-----------------------------+  +-----------------------------+
+| Notify other clients:       |  | If message received:        |
+| "client X just arrived"     |  | broadcast to other clients  |
++-----------------------------+  +-----------------------------+
                                               |
                                               v
-                                    +-----------------------------+
-                                    | If disconnected:            |
-                                    | close fd, free memory,      |
-                                    | notify clients              |
-                                    +-----------------------------+
+                                  +-----------------------------+
+                                  |  If disconnected:           |
+                                  |   - close fd, free memory,  |
+                                  |   - notify clients          |
+                                  +-----------------------------+
 ```
 
 Testing
