@@ -7,18 +7,35 @@ This is a small non-blocking TCP chat server in C.
 It listens on `127.0.0.1` and allows multiple clients to communicate with each other using socket multiplexing via `select()`.
 ![src](https://ops.tips/blog/-/images/tcp-connection-overview.svg)
 
-Features
---------
+The goal of this project:
+-------------------------
 
-*   TCP server bound to `127.0.0.1`
-    
-*   Handles multiple clients simultaneously
-    
-*   Non-blocking I/O using `select()`
-    
-*   Broadcasts messages between clients
-    
-*   Proper connection and disconnection notifications
+*   Let multiple clients connect to my server on 127.0.0.1 (localhost) on a specific port.
+
+*   Give each client a unique ID.
+
+*   Allow clients to send messages to the server.
+
+*   The server broadcast messages to all other clients in real time.
+
+*   Inform clients when someone arrives or leaves.
+
+*   Handle multiple clients without using threads (via `select()`).
+
+
+Things i have learned:
+----------------------
+
+*   Low-level network programming in C (sockets, TCP/IP).
+
+*   Event-driven programming using select() instead of threads.
+
+*   Buffering and handling partial messages (clients can send messages in chunks).
+
+*   Non-blocking I/O and why monitoring read/write readiness is important.
+
+*   Chat apps, game servers, or real-time services work behind the scences.
+
 
 Server Event Loop (Flow Diagram)
 -------------
@@ -71,11 +88,13 @@ Testing
 ### Compilation && Execution: 
     cc -Wall -Wextra -Werror tcp_server.c -o tcp_server && ./tcp_server <port>
 
-You can test the server using `nc` (netcat):
+You can open a client on the server using `nc`(netcat):
 
 `nc 127.0.0.1 8080`
 
 Open multiple terminals to simulate multiple clients.
+
+Now type a message from a client — it gets broadcasted to the other clients, enjoy ;).
 
 Functions i used
 -----------------

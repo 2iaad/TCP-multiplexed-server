@@ -4,7 +4,6 @@
 #include <stdio.h> // for sprintf.
 #include <netinet/ip.h> // for sockaddr_in.
 #include <sys/select.h> // for select and fd_set.
-#include <sys/socket.h>
 
 /*
 	id: unique client ID assigned when they connect.
@@ -15,11 +14,11 @@ typedef struct	s_client{
 	char	msg[424242];
 }	t_client;
 
+t_client	clients[1024];
+
 int			max = 0, next_id = 0;
 char		buffRead[424242], buffWrite[424242];
-
-t_client	clients[1024];
-fd_set		Readfds, Writefds, curr;// fd_set: data structure used by select(), a list of file descriptors I want the OS to watch
+fd_set		Readfds, Writefds, curr; // fd_set: data structure used by select(), a list of file descriptors I want the OS to watch
 
 void	printError(char *str)
 {
@@ -27,7 +26,7 @@ void	printError(char *str)
 	exit(1);
 }
 
-void	msgsender(int sendfd)
+void	msgSender(int sendfd)
 {
 	for (int fd = 0; fd <= max ; fd++)
 	{
@@ -74,31 +73,42 @@ int	main(int ac,char** av)
 	if (listen(socketFd, 10) != 0) // backlog: 10 people can wait in queue to connect
         printError("Fatal error\n");
 
-	while(1) // main server loop
+    /*
+        The loop is "hanged" inside select() waiting for incoming events such as:
+            -> A new client trying to connect (listening socket becomes readable)
+            -> An existing client sending data (client socket becomes readable)
+
+        * When an event happens, select() returns
+        * Readfds/Writefds are updated by select() to contain only the fds that are ready (thats why we init them each time)
+    */
+	while(1)
 	{
 		Readfds = Writefds = curr;
-		if (select(max + 1, &Readfds, &Writefds, NULL, NULL) < 0)
+		if (select(max + 1, &Readfds, &Writefds, NULL, NULL) < 0) // listen for events | (max + 1) because select listens to (max-1) RTFM
             continue;
 		for (int fd = 0; fd <= max; fd++)
 		{
-			if (FD_ISSET(fd, &Readfds) && fd == socketFd){
-				int clientSocket = accept(socketFd, NULL, NULL);
-				if (clientSocket > max)
-					max = clientSocket;
-				clients[clientSocket].id = next_id++;
-				bzero(clients[clientSocket].msg, sizeof(clients[clientSocket].msg));
-				FD_SET(clientSocket, &curr);
-				sprintf(buffWrite, "server: client %d just arrived\n", clients[clientSocket].id);
-				msgsender(clientSocket);
+            // accepting new client connections
+			if (FD_ISSET(fd, &Readfds) && fd == socketFd) // if fd is marked as ready for read + fd = socketFd => newClient
+            {
+				int newClient = accept(socketFd, NULL, NULL);
+				if (newClient > max)
+					max = newClient;
+				clients[newClient].id = next_id++;
+				bzero(clients[newClient].msg, sizeof(clients[newClient].msg)); // Clears the message buffer for this client.
+				FD_SET(newClient, &curr); // add new client to tracked sockets to stay notified about events
+				sprintf(buffWrite, "server: client %d just arrived\n", clients[newClient].id);
+				msgSender(newClient);
 				break;
 			}
+            
 			if (FD_ISSET(fd, &Readfds) && fd != socketFd)
 			{
 				int read = recv(fd, buffRead, sizeof(buffRead), 0);
 				if(read <= 0)
 				{
 					sprintf(buffWrite, "server: client %d just left\n", clients[fd].id);
-					msgsender(fd);
+					msgSender(fd);
 					FD_CLR(fd, &curr);
 					close(fd);
 					break;
@@ -112,7 +122,7 @@ int	main(int ac,char** av)
 						{
 							clients[fd].msg[j] = '\0';
 							sprintf(buffWrite, "client %d: %s\n", clients[fd].id, clients[fd].msg);
-							msgsender(fd);
+							msgSender(fd);
 							bzero(clients[fd].msg, strlen(clients[fd].msg));
 							j = -1;
 						}
