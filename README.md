@@ -69,7 +69,7 @@ Testing
 -------
 
 ### Compilation && Execution: 
-    gcc -Wall -Wextra -Werror tcp_server.c -o tcp_server && ./tcp_server <port>
+    cc -Wall -Wextra -Werror tcp_server.c -o tcp_server && ./tcp_server <port>
 
 You can test the server using `nc` (netcat):
 
