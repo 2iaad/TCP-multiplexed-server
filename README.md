@@ -38,7 +38,7 @@ Things i have learned:
 
 
 Server Event Loop (Flow Diagram)
--------------
+--------------------------------
 ```
                 +--------------------+
                 |   socket / bind /  |

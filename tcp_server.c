@@ -101,7 +101,7 @@ int	main(int ac,char** av)
 				msgSender(newClient);
 				break;
 			}
-            
+
 			if (FD_ISSET(fd, &Readfds) && fd != socketFd)
 			{
 				int read = recv(fd, buffRead, sizeof(buffRead), 0);
