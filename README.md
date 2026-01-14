@@ -99,7 +99,7 @@ How this project helped me build an HTTP server
 An Http server will depend on sockets to transfer the requests & responses between the client and the server, so understanding how Tcp works behind the scenes is considered a foundational step toward understanding and building HTTP servers.
 
 <div align="center">
-    <img width="450px" src="https://ops.tips/blog/-/images/tcp-sockets.svg" />
+    <img width="700px" src="https://ops.tips/blog/-/images/tcp-sockets.svg" />
 </div>
 
 By working with raw TCP sockets, you gain hands-on experience with:
