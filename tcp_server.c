@@ -11,13 +11,13 @@
 */
 typedef struct	s_client{
 	int		id;
-	char	msg[424242];
+	char	msg[100000];
 }	t_client;
 
 t_client	clients[1024];
 
 int			max = 0, next_id = 0;
-char		buffRead[424242], buffWrite[424242];
+char		buffRead[100000], buffWrite[100000];
 fd_set		Readfds, Writefds, curr; // fd_set: data structure used by select(), a list of file descriptors I want the OS to watch
 
 void	printError(char *str)
@@ -44,13 +44,13 @@ int	main(int ac,char** av)
 	struct sockaddr_in  servaddr; // pre-defined data structure that holds infos about a network adress (version, ip, port.. etc)
 
     /*
-        socket() : create endpoint for communication
+        socket() : create endpoint in the server for communication
 
         AF_INET: It tells the OS that the socket will use IPv4 addresses
         SOCK_STREAM: I want to use reliable, two-way connection based byte streams.
         IPPROTO_TCP || 0: protocol to use.
     */
-	socketFd = max = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	socketFd = max = socket(AF_INET, SOCK_STREAM, 0);
 	if (socketFd == -1)
         printError("Fatal error\n");
 
@@ -95,35 +95,36 @@ int	main(int ac,char** av)
 				if (newClient > max)
 					max = newClient;
 				clients[newClient].id = next_id++;
-				bzero(clients[newClient].msg, sizeof(clients[newClient].msg)); // Clears the message buffer for this client.
+				bzero(clients[newClient].msg, 100000); // Clears the message buffer for this client.
 				FD_SET(newClient, &curr); // add new client to tracked sockets to stay notified about events
 				sprintf(buffWrite, "server: client %d just arrived\n", clients[newClient].id);
 				msgSender(newClient);
 				break;
 			}
 
+			// handle data from connected clients
 			if (FD_ISSET(fd, &Readfds) && fd != socketFd)
 			{
-				int read = recv(fd, buffRead, sizeof(buffRead), 0);
-				if(read <= 0)
+				int bytesRead = read(fd, buffRead, sizeof(buffRead));
+				if(bytesRead <= 0) // remove client (error || client disconected)
 				{
 					sprintf(buffWrite, "server: client %d just left\n", clients[fd].id);
 					msgSender(fd);
-					FD_CLR(fd, &curr);
+					FD_CLR(fd, &curr); // remove fd from the active file descriptors
 					close(fd);
 					break;
 				}
 				else
 				{
-					for(int i = 0, j = strlen(clients[fd].msg); i < read; i++, j++)
+					for(int i = 0, j = strlen(clients[fd].msg); i < bytesRead; i++, j++)
 					{
 						clients[fd].msg[j] = buffRead[i];
-						if(clients[fd].msg[j] == '\n')
+						if (clients[fd].msg[j] == '\n')
 						{
 							clients[fd].msg[j] = '\0';
 							sprintf(buffWrite, "client %d: %s\n", clients[fd].id, clients[fd].msg);
 							msgSender(fd);
-							bzero(clients[fd].msg, strlen(clients[fd].msg));
+							bzero(clients[fd].msg, 100000);
 							j = -1;
 						}
 					}

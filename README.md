@@ -62,36 +62,28 @@ Server Event Loop (Flow Diagram)
                              /                          \
               +----------------+                      +--------------------+
               | New connection |                      | Client socket ready|
-              | (listen fd)    |                      | (recv/send)        |
+              |   (listen fd)  |                      | (recv/send)        |
               +----------------+                      +--------------------+
                       |                                          |
                       v                                          v
             +--------------------+                    +----------------------+
-            | accept() client    |                    | recv() message       |
-            | assign ID          |                    | or detect disconnect |
+            | - accept() client  |                    | recv() message       |
+            | - assign ID        |                    | or detect disconnect |
             +--------------------+                    +----------------------+
                       |                                    |             |
                       v                                    v             v
       +------------------------- +       +-------------------+         +-------------------+
-      | Notify other clients:    |       | broadcast message |         | If disconnected:  |
-      | "client X just arrived"  |       |         to        |         |  - close fd       |
-      +--------------------------+       |   other clients   |         |  - notify clients |
-                                         +-------------------+         +-------------------+
+      |      Notify other        |       | broadcast message |         | If disconnected:  |
+      |          clients         |       |         to        |         |  - close fd       |
+      | "client X just arrived"  |       |   other clients   |         |  - notify clients |
+      +--------------------------+       +-------------------+         +-------------------+
 ```
 
-Testing
--------
 
-### Compilation && Execution: 
-    cc -Wall -Wextra -Werror tcp_server.c -o tcp_server && ./tcp_server <port>
+Functions i used
+----------------
 
-You can open a client on the server using `nc`(netcat):
-
-`nc 127.0.0.1 8080`
-
-Open multiple terminals to simulate multiple clients.
-
-Now type a message from a client — it gets broadcasted to the other clients, enjoy ;).
+`accept(), atoi(), bind(), close(), exit(), listen(), memcpy(), memset(), recv(), select(), socket(), strlen(), write().`
 
 How this project helped me build an HTTP server
 -----------------------------------------------
@@ -109,7 +101,16 @@ By working with raw TCP sockets, you gain hands-on experience with:
 - **Message Framing:** Understand how to parse and assemble messages, which is essential for handling HTTP requests and responses.
 - **Client Management:** Track connected clients, manage their state, and broadcast messages—skills directly transferable to HTTP session handling.
 
-Functions i used
-----------------
+Testing
+-------
 
-`accept(), atoi(), bind(), close(), exit(), listen(), memcpy(), memset(), recv(), select(), socket(), strlen(), write().`
+### Compilation && Execution: 
+    cc -Wall -Wextra -Werror tcp_server.c -o tcp_server && ./tcp_server <port>
+
+You can open a client on the server using `nc`(netcat):
+
+`nc 127.0.0.1 8080`
+
+Open multiple terminals to simulate multiple clients.
+
+Now type a message from a client — it gets broadcasted to the other clients, enjoy ;).
