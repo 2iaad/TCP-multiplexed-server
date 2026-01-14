@@ -5,7 +5,10 @@ Description
 
 This is a small non-blocking TCP chat server in C.
 It listens on `127.0.0.1` and allows multiple clients to communicate with each other using socket multiplexing via `select()`.
-![src](https://ops.tips/blog/-/images/tcp-connection-overview.svg)
+
+<div align="center">
+    <img width="450px" src="./assets/socketImage.png" />
+</div>
 
 The goal of this project:
 -------------------------
@@ -40,46 +43,40 @@ Things i have learned:
 Server Event Loop (Flow Diagram)
 --------------------------------
 ```
-                +--------------------+
-                |   socket / bind /  |
-                |       listen       |
-                +--------------------+
-                          |
-                          v
-                +--------------------+
-                |    Start Server    |
-                +--------------------+
-                          |
-                          v
-                +--------------------+
-                |      Main Loop     |
-                |       select()     |
-                +--------------------+
-                    /              \
-                   /                \
-        +----------------+       +--------------------+
-        | New connection |       | Client socket ready|
-        | (listen fd)    |       | (recv/send)        |
-        +----------------+       +--------------------+
-                |                             |
-                v                             v
-      +--------------------+     +----------------------+
-      | accept() client    |     | recv() message       |
-      | assign ID          |     | or detect disconnect |
-      +--------------------+     +----------------------+
-                |                             |
-                v                             v
-+-----------------------------+  +-----------------------------+
-| Notify other clients:       |  | If message received:        |
-| "client X just arrived"     |  | broadcast to other clients  |
-+-----------------------------+  +-----------------------------+
-                                              |
-                                              v
-                                  +-----------------------------+
-                                  |  If disconnected:           |
-                                  |   - close fd, free memory,  |
-                                  |   - notify clients          |
-                                  +-----------------------------+
+                                +--------------------+
+                                |   socket / bind /  |
+                                |       listen       |
+                                +--------------------+
+                                          |
+                                          v
+                                +--------------------+
+                                |    Start Server    |
+                                +--------------------+
+                                          |
+                                          v
+                                +--------------------+
+                                |      Main Loop     |
+                                |       select()     |
+                                +--------------------+
+                              /                        \
+                             /                          \
+              +----------------+                      +--------------------+
+              | New connection |                      | Client socket ready|
+              | (listen fd)    |                      | (recv/send)        |
+              +----------------+                      +--------------------+
+                      |                                          |
+                      v                                          v
+            +--------------------+                    +----------------------+
+            | accept() client    |                    | recv() message       |
+            | assign ID          |                    | or detect disconnect |
+            +--------------------+                    +----------------------+
+                      |                                    |             |
+                      v                                    v             v
+      +------------------------- +       +-------------------+         +-------------------+
+      | Notify other clients:    |       | broadcast message |         | If disconnected:  |
+      | "client X just arrived"  |       |         to        |         |  - close fd       |
+      +--------------------------+       |   other clients   |         |  - notify clients |
+                                         +-------------------+         +-------------------+
 ```
 
 Testing
@@ -101,3 +98,12 @@ Functions i used
 
 `accept(), atoi(), bind(), close(), exit(), listen(), memcpy(), memset(), recv(), select(), socket(), strlen(), write().`
 
+How this project helped me build an HTTP server
+-----------------------------------------------
+
+This TCP multiplexed server project is a foundational step toward understanding and building HTTP servers. By working with raw TCP sockets, you gain hands-on experience with:
+
+- **Socket Programming:** Learn how to create, bind, listen, and accept connections.
+- **Multiplexing:** Use `select()` to handle multiple clients simultaneously, a core concept for scalable servers.
+- **Message Framing:** Understand how to parse and assemble messages, which is essential for handling HTTP requests and responses.
+- **Client Management:** Track connected clients, manage their state, and broadcast messages—skills directly transferable to HTTP session handling.
