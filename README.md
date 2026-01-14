@@ -93,17 +93,23 @@ Open multiple terminals to simulate multiple clients.
 
 Now type a message from a client — it gets broadcasted to the other clients, enjoy ;).
 
-Functions i used
------------------
-
-`accept(), atoi(), bind(), close(), exit(), listen(), memcpy(), memset(), recv(), select(), socket(), strlen(), write().`
-
 How this project helped me build an HTTP server
 -----------------------------------------------
 
-This TCP multiplexed server project is a foundational step toward understanding and building HTTP servers. By working with raw TCP sockets, you gain hands-on experience with:
+An Http server will depend on sockets to transfer the requests & responses between the client and the server, so understanding how Tcp works behind the scenes is considered a foundational step toward understanding and building HTTP servers.
+
+<div align="center">
+    <img width="450px" src="https://ops.tips/blog/-/images/tcp-sockets.svg" />
+</div>
+
+By working with raw TCP sockets, you gain hands-on experience with:
 
 - **Socket Programming:** Learn how to create, bind, listen, and accept connections.
 - **Multiplexing:** Use `select()` to handle multiple clients simultaneously, a core concept for scalable servers.
 - **Message Framing:** Understand how to parse and assemble messages, which is essential for handling HTTP requests and responses.
 - **Client Management:** Track connected clients, manage their state, and broadcast messages—skills directly transferable to HTTP session handling.
+
+Functions i used
+----------------
+
+`accept(), atoi(), bind(), close(), exit(), listen(), memcpy(), memset(), recv(), select(), socket(), strlen(), write().`
